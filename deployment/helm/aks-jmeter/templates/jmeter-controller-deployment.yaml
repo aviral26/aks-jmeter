@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "aks-jmeter.jmeter.controller-name" . }}
+  labels:
+    {{- include "aks-jmeter.jmeter.controller-modeLabels" . | nindent 4 }}
+    {{- include "aks-jmeter.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "aks-jmeter.jmeter.controller-modeLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "aks-jmeter.jmeter.controller-modeLabels" . | nindent 8 }}
+    spec:
+      containers:
+      - name: {{ include "aks-jmeter.jmeter.controller-name" . }}
+        image: {{ include "aks-jmeter.jmeter.controller-image" . }}
+        imagePullPolicy: {{ .Values.jmeter.controller.image.pullPolicy }}
+        command: [ "/bin/bash", "-c", "--" ]
+        args: [ "while true; do sleep 30; done;" ]
+        volumeMounts:
+          - name: loadtest
+            mountPath: /load_test
+            subPath: "load_test"
+        ports:
+        - containerPort: {{ .Values.jmeter.controller.ports.pod.api }}
+        env:
+        - name: KRATER_ACR_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "aks-jmeter.registry-secret-name" . }}
+              key: username
+              optional: false
+        - name: KRATER_ACR_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "aks-jmeter.registry-secret-name" . }}
+              key: password
+              optional: false
+        - name: KRATER_ACR_LOGINSERVER
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "aks-jmeter.registry-secret-name" . }}
+              key: loginserver
+              optional: false
+      volumes:
+      - name: loadtest 
+        configMap:
+         name: {{ include "aks-jmeter.jmeter.controller-config-name" . }}

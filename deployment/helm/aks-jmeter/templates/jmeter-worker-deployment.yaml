@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "aks-jmeter.jmeter.worker-name" . }}
+  labels:
+    {{- include "aks-jmeter.jmeter.worker-modeLabels" . | nindent 4 }}
+    {{- include "aks-jmeter.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.jmeter.worker.replicas }}
+  selector:
+    matchLabels:
+      {{- include "aks-jmeter.jmeter.worker-modeLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "aks-jmeter.jmeter.worker-modeLabels" . | nindent 8 }}
+    spec:
+      containers:
+      - name: {{ include "aks-jmeter.jmeter.worker-name" . }}
+        image: {{ include "aks-jmeter.jmeter.worker-image" . }}
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: {{ .Values.jmeter.worker.ports.pod.server }}
+        - containerPort: {{ .Values.jmeter.worker.ports.pod.local }}
+        resources:
+          requests:
+            cpu: {{ .Values.jmeter.worker.resources.requests.cpu }}
+            memory: {{ .Values.jmeter.worker.resources.requests.memory }}
+          limits:
+            cpu: {{ .Values.jmeter.worker.resources.limits.cpu }}
+            memory: {{ .Values.jmeter.worker.resources.limits.memory }}

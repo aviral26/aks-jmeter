@@ -1,0 +1,61 @@
+azure:
+# Configuration applies to individual volumes.
+  disk:
+    class: managed-premium
+    size: 10Gi
+
+jmeter:
+  controller:
+    image:
+      namespacePrefix: __REGISTRY__/testframework
+      name: jmetercontroller
+      tag: latest
+      pullPolicy: IfNotPresent
+    ports:
+      pod:
+        api: 60000
+  worker:
+    replicas: 1
+    image:
+      namespacePrefix: __REGISTRY__/testframework
+      name: jmeterworker
+      tag: latest
+      pullPolicy: IfNotPresent
+    ports:
+      pod:
+        server: 1099
+        local: 50000
+    resources:
+      requests:
+        cpu: 1
+        memory: 1G
+      limits:
+        cpu: 1
+        memory: 2G
+
+reporter:
+  image:
+    namespacePrefix: __REGISTRY__/testframework
+    name: reporter
+    tag: latest
+    pullPolicy: IfNotPresent
+  resources:
+    limits:
+      cpu: "4"
+      memory: 2G
+    requests:
+      cpu: "2"
+  ports:
+    dashboard:
+      web: 80
+    influxdb:
+      api: 8086
+      graphite: 2003
+      http: 8003
+    pod:
+      web: 3000
+      api: 8086
+  tolerations:
+    key: sku
+    value: reporter
+    effect: NoSchedule

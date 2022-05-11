@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "aks-jmeter.reporter.name" . }}
+  labels:
+    {{- include "aks-jmeter.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "aks-jmeter.reporter.appLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "aks-jmeter.reporter.appLabels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: {{ include "aks-jmeter.reporter.name" . }}
+          image: {{ include "aks-jmeter.reporter.image" . }}
+          imagePullPolicy: {{ .Values.reporter.image.imagePullPolicy }}
+          command: [ "/bin/bash", "-c", "--" ]
+          args: [ "chown grafana /var/lib/grafana; chgrp grafana /var/lib/grafana;chown influxdb /var/lib/influxdb; chgrp influxdb /var/lib/influxdb;service influxdb start;service grafana-server start;while true; do sleep 30; done;" ]
+          resources:
+            limits:
+              cpu: {{ .Values.reporter.resources.limits.cpu }}
+              memory: {{ .Values.reporter.resources.limits.memory }}
+            requests:
+              cpu: {{ .Values.reporter.resources.requests.cpu }}
+          volumeMounts:
+            - name: config-volume
+              mountPath: /etc/Influxdb
+            - name: influx-volume
+              mountPath: /var/lib/influxdb
+            - name: grafana-volume
+              mountPath: /var/lib/grafana
+          ports:
+            - containerPort: {{ .Values.reporter.ports.pod.web }}
+              name: web
+            - containerPort: {{ .Values.reporter.ports.pod.api }}
+              name: api
+      volumes:
+      - name: config-volume
+        configMap:
+         name: {{ include "aks-jmeter.reporter.influxdb-config-name" . }}
+      - name: influx-volume
+        persistentVolumeClaim:
+          claimName: {{ include "aks-jmeter.influxdb-disk-name" . }}
+      - name: grafana-volume
+        persistentVolumeClaim:
+          claimName: {{ include "aks-jmeter.grafana-disk-name" . }}
+      tolerations:
+        - key: {{ .Values.reporter.tolerations.key }}
+          operator: "Equal"
+          value: {{ .Values.reporter.tolerations.value }}
+          effect: {{ .Values.reporter.tolerations.effect }}

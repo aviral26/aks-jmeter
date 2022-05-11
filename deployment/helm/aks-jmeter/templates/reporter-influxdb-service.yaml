@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "aks-jmeter.reporter.influxdb.name" . }}
+  labels:
+    app: {{ include "aks-jmeter.reporter.name" . }}
+spec:
+  ports:
+    - port: {{ .Values.reporter.ports.influxdb.http }}
+      name: http
+      targetPort: {{ .Values.reporter.ports.influxdb.http }} # TODO: pod does not expose this
+    - port: {{ .Values.reporter.ports.influxdb.api }}
+      name: api
+      targetPort: {{ .Values.reporter.ports.pod.api }}
+    - port: {{ .Values.reporter.ports.influxdb.graphite }}
+      name: graphite
+      targetPort: {{ .Values.reporter.ports.influxdb.graphite }} # TODO: pod does not expose this
+  selector:
+    app: {{ include "aks-jmeter.reporter.name" . }}

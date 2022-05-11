@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "aks-jmeter.grafana-disk-name" . }}
+spec:
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: {{ .Values.azure.disk.class }}
+  resources:
+    requests:
+      storage: {{ .Values.azure.disk.size }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "aks-jmeter.influxdb-disk-name" . }}
+spec:
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: {{ .Values.azure.disk.class }}
+  resources:
+    requests:
+      storage: {{ .Values.azure.disk.size }}

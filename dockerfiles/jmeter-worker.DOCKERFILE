@@ -18,4 +18,7 @@ ENV JMETER_HOME /jmeter/apache-jmeter-$JMETER_VERSION/
 		
 ENV PATH $JMETER_HOME/bin:$PATH
 
-EXPOSE 60000
+ENTRYPOINT $JMETER_HOME/bin/jmeter-server \
+-Dserver.rmi.localport=50000 \
+-Dserver_port=1099 \
+-Jserver.rmi.ssl.disable=true
